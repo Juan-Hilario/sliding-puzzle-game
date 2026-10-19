@@ -269,24 +269,15 @@ export const getDirection = (
     }
 };
 
-export const placePiece = (
-    board: (Shape | null)[][],
-    piece: Shape,
-    boardError: { msg: string; error: boolean },
-) => {
+export const placePiece = (board: (Shape | null)[][], piece: Shape) => {
     const coordinates = Object.values(piece.coordinates);
     const verifiedCoords = [];
     for (let i = 0; i < coordinates.length; i++) {
         const m = coordinates[i].m;
         const n = coordinates[i].n;
         if (m >= board.length || n >= board[0].length) {
-            boardError = { msg: "Piece out of bounds", error: true };
             return "Piece out of bounds";
         } else if (board[m][n] !== null) {
-            boardError = {
-                msg: "Space is occupied by other piece",
-                error: true,
-            };
             return "Space is occupied by other piece";
         } else {
             verifiedCoords.push(coordinates[i]);

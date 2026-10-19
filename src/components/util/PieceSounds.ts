@@ -14,6 +14,6 @@ export const playRandomSound = () => {
     } while (index === lastSound && sounds.length > 1);
 
     lastSound = index;
-    const audio = new Audio(sounds[index]);
+    const audio = new Audio(<string>sounds[index]);
     audio.play();
 };

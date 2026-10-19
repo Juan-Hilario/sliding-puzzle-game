@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createShape, Shape, ShapeType } from "./Pieces";
 import Win from "./Win";
 import Board from "./Board";
+import Instructions from "./menu/Instructions";
 import "../styles/Board.css";
 
 export interface Level {
@@ -58,7 +59,9 @@ function Game({ onExit }: BoardProps) {
     );
 
     const [difficulty, setDifficulty] = useState<string>(
-        String(`${localStorage.getItem("difficulty") ? localStorage.getItem("difficulty") : ""}`),
+        String(
+            `${localStorage.getItem("difficulty") ? localStorage.getItem("difficulty") : ""}`,
+        ),
     );
 
     const [gameWin, setGameWin] = useState<boolean>(false);
@@ -112,7 +115,9 @@ function Game({ onExit }: BoardProps) {
         }
     }, []);
 
-    const checkWin = (board: ({ id: number; type: string; cordinates: [] } | null)[][]) => {
+    const checkWin = (
+        board: ({ id: number; type: string; cordinates: [] } | null)[][],
+    ) => {
         if (
             board[3][1] == null ||
             board[3][2] == null ||
@@ -153,7 +158,8 @@ function Game({ onExit }: BoardProps) {
     }, [levels, levelNum, reset]);
 
     // Builds empty board
-    const createEmptyBoard = () => Array.from({ length: 5 }, () => new Array(4).fill(null));
+    const createEmptyBoard = () =>
+        Array.from({ length: 5 }, () => new Array(4).fill(null));
 
     const getBoardFromPieces = (pieces: Shape[]) => {
         const newBoard = createEmptyBoard();
@@ -173,8 +179,34 @@ function Game({ onExit }: BoardProps) {
         setGameWin(false);
     }, [levelNum, reset]);
 
+    if (!localStorage.getItem("firstTime")) {
+        localStorage.setItem("firstTime", "true");
+    }
+
+    const [showInstructions, setShowInstructions] = useState<boolean>(
+        localStorage.getItem("firstTime") == "true",
+    );
+
+    const closeInstructions = () => {
+        setShowInstructions(false);
+        localStorage.setItem("firstTime", "false");
+    };
+
+    const openInstructions = () => {
+        setShowInstructions(true);
+    };
+
     return (
         <>
+            {showInstructions ? (
+                <>
+                    {" "}
+                    <Instructions
+                        levels={levels}
+                        closeFunction={closeInstructions}
+                    />
+                </>
+            ) : null}
             {boardError.error ? (
                 <div className="boardError">
                     <h1>{boardError.msg}</h1>
@@ -182,38 +214,28 @@ function Game({ onExit }: BoardProps) {
             ) : (
                 <>
                     <div className="game">
-                        <div className="top">
+                        <div className="game-left">
+                            <div className="game-title">
+                                <h2>Sliding Puzzle Game</h2>
+                                <button
+                                    className="info-btn"
+                                    title="How to Play"
+                                    onClick={() => openInstructions()}
+                                >
+                                    🛈
+                                </button>
+                            </div>
                             <button className="exit-btn" onClick={onExit}>
                                 Exit
                             </button>
-                            <div className="top-right">
-                                <div className="instructions">
-                                    <h2>How to Play</h2>
-                                    <ul style={{ textAlign: "left" }}>
-                                        <li>
-                                            The goal of the game is to get the big red square into
-                                            the bottom center of the board, marked in light gray.
-                                        </li>
-                                        <li>
-                                            {" "}
-                                            To slide the peices around you can drag them with your
-                                            mouse to an empty space. A piece will only move if there
-                                            is enough space for it to move.
-                                        </li>
-                                        <li>
-                                            There are only {levels.length} levels at this point,
-                                            with many more levels to come. All levels are
-                                            possible.{" "}
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="main">
-                            <div className="level-controls">
-                                <h3>Highest Level: {highestLevel + 1}</h3>
-                                <h1>Level: {levelNum + 1}</h1>
+                            <div className="top">
+                                <div className="level">
+                                    <h1>Level: {levelNum + 1}</h1>
+                                    <h3>Highest Level: {highestLevel + 1}</h3>
+                                </div>
                                 <h4
                                     style={{
                                         color: `${difficulty === "easy" ? "green" : difficulty === "medium" ? "orange" : difficulty === "hard" ? "red" : null} `,
@@ -222,18 +244,38 @@ function Game({ onExit }: BoardProps) {
                                     {difficulty}
                                 </h4>
 
-                                <button onClick={() => changeLevel("prev")}>Prev</button>
-                                <button onClick={() => changeLevel("again")}>Reset</button>
+                                <div className="level-controls">
+                                    <button onClick={() => changeLevel("prev")}>
+                                        Prev
+                                    </button>
+                                    <button
+                                        onClick={() => changeLevel("again")}
+                                    >
+                                        Reset
+                                    </button>
 
-                                {highestLevel >= levelNum + 1 ? (
-                                    <button onClick={() => changeLevel("next")}>Next</button>
-                                ) : null}
+                                    {highestLevel >= levelNum + 1 ? (
+                                        <button
+                                            onClick={() => changeLevel("next")}
+                                        >
+                                            Next
+                                        </button>
+                                    ) : null}
+                                </div>
                             </div>
 
-                            <Board board={board} pieces={pieces} setPieces={setPieces} />
+                            <Board
+                                board={board}
+                                pieces={pieces}
+                                setPieces={setPieces}
+                            />
                         </div>
                         {gameWin ? (
-                            <Win levelFunction={changeLevel} levelNum={levelNum} levels={levels} />
+                            <Win
+                                levelFunction={changeLevel}
+                                levelNum={levelNum}
+                                levels={levels}
+                            />
                         ) : null}
                     </div>
                 </>
